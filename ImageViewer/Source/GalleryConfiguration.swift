@@ -37,7 +37,6 @@ func defaultGalleryConfiguration() -> GalleryConfiguration {
     let spinnerStyle = GalleryConfigurationItem.SpinnerStyle(UIActivityIndicatorViewStyle.White)
     
     let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
-    debugPrint(UIImage(named: "ImageViewer.bundle/close_normal"))
     button.setImage(UIImage(named: "ImageViewer.bundle/close_normal"), forState: UIControlState.Normal)
     button.setImage(UIImage(named: "ImageViewer.bundle/close_highlighted"), forState: UIControlState.Highlighted)
     let closeButton = GalleryConfigurationItem.CloseButton(button)
