@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     @IBAction func showSingleImageViewer(sender: UIButton) {
         
         let imageProvider = SomeImageProvider()
-        let buttonAssets = CloseButtonAssets(normal: UIImage(named:"close_normal")!, highlighted: UIImage(named: "close_highlighted"))
+        let buttonAssets = CloseButtonAssets(normal: UIImage(named:"ImageViewer.bundle/close_normal")!, highlighted: UIImage(named: "ImageViewer.bundle/close_highlighted"))
         let configuration = ImageViewerConfiguration(imageSize: CGSize(width: 10, height: 10), closeButtonAssets: buttonAssets)
         
         let imageViewer = ImageViewer(imageProvider: imageProvider, configuration: configuration, displacedView: sender)
