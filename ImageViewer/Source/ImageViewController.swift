@@ -272,7 +272,7 @@ final class ImageViewController: UIViewController, UIScrollViewDelegate, UIGestu
             
             if let imageView = self?.imageView, _ = imageView.image, scrollView = self?.scrollView {
                 
-                imageView.bounds.size = aspectFitContentSize(forBoundingSize: boundingSize, contentSize: imageView.bounds.size)
+                imageView.bounds.size = aspectFitContentSize(forBoundingSize: imageView.superview?.bounds.size ?? boundingSize, contentSize: imageView.bounds.size)
                 scrollView.zoomScale = self!.minimumZoomScale
             }
             }, completion: nil)
