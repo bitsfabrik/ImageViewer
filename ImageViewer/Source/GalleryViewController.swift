@@ -190,6 +190,12 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         }
     }
     
+    public func reload() {
+        let initialImageController = ImageViewController(imageProvider: imageProvider, configuration: configuration, imageCount: imageCount, displacedView: displacedView, startIndex: startIndex,  imageIndex: startIndex, showDisplacedImage: true, fadeInHandler: fadeInHandler, delegate: self)
+        self.setViewControllers([initialImageController], direction: UIPageViewControllerNavigationDirection.Forward, animated: false, completion: nil)
+        self.currentIndex = self.startIndex
+    }
+    
     private func configureCloseButton() {
         
         closeButton?.addTarget(self, action: #selector(GalleryViewController.interactiveClose), forControlEvents: .TouchUpInside)
