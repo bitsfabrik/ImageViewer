@@ -12,6 +12,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     
     /// UI
     private var closeButton: UIButton?
+    private var seeAllButton: UIButton?
     /// You can set any UIView subclass here. If set, it will be integrated into view hierachy and laid out 
     /// following either the default pinning settings or settings from a custom configuration.
     public var headerView: UIView?
@@ -37,6 +38,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     /// LOCAL CONFIG
     private let configuration: GalleryConfiguration
     private var spinnerColor = UIColor.whiteColor()
+    private var backgroundColor = UIColor.blackColor()
     private var spinnerStyle = UIActivityIndicatorViewStyle.White
     private let presentTransitionDuration = 0.25
     private let dismissTransitionDuration = 1.00
@@ -46,7 +48,8 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     private let toggleHeaderFooterAnimationDuration = 0.15
     private let closeAnimationDuration = 0.2
     private let rotationAnimationDuration = 0.2
-    private var closeLayout = CloseButtonLayout.PinRight(25, 16)
+    private var closeLayout = ButtonLayout.PinLeft(8, 16)
+    private var seeAllLayout = ButtonLayout.PinRight(8, 16)
     private var headerLayout = HeaderLayout.Center(25)
     private var footerLayout = FooterLayout.Center(25)
     private var statusBarHidden = true
@@ -91,17 +94,19 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
             case .SpinnerStyle(let style):                  spinnerStyle = style
             case .SpinnerColor(let color):                  spinnerColor = color
             case .CloseButton(let button):                  closeButton = button
+            case .SeeAllButton(let button):                 seeAllButton = button
             case .PagingMode(let mode):                     galleryPagingMode = mode
             case .HeaderViewLayout(let layout):             headerLayout = layout
             case .FooterViewLayout(let layout):             footerLayout = layout
             case .CloseLayout(let layout):                  closeLayout = layout
+            case .SeeAllLayout(let layout):                 seeAllLayout = layout
             case .StatusBarHidden(let hidden):              statusBarHidden = hidden
             case .HideDecorationViewsOnLaunch(let hidden):  isDecorationViewsHidden = hidden
-                
+            case .BackgroundColor(let color):               backgroundColor = color
             }
         }
+        self.presentTransition = GalleryPresentTransition(duration: presentTransitionDuration, displacedView: self.displacedView, decorationViewsHidden: isDecorationViewsHidden, backgroundColor: backgroundColor)
         
-        self.presentTransition = GalleryPresentTransition(duration: presentTransitionDuration, displacedView: self.displacedView , decorationViewsHidden: isDecorationViewsHidden)
         self.closeTransition = GalleryCloseTransition(duration: dismissTransitionDuration)
         
         super.init(transitionStyle: UIPageViewControllerTransitionStyle.Scroll, navigationOrientation: UIPageViewControllerNavigationOrientation.Horizontal, options: [UIPageViewControllerOptionInterPageSpacingKey : NSNumber(float: dividerWidth)])
@@ -135,7 +140,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     func applyOverlayView() -> UIView {
         
         let overlayView = UIView()
-        overlayView.backgroundColor = UIColor.blackColor()
+        overlayView.backgroundColor = backgroundColor
         overlayView.bounds.size = UIScreen.mainScreen().bounds.insetBy(dx: -UIScreen.mainScreen().bounds.width * 2, dy: -UIScreen.mainScreen().bounds.height * 2).size
         overlayView.center = self.view.boundsCenter
         self.presentingViewController?.view.addSubview(overlayView)
@@ -179,7 +184,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     
     func configureInitialImageController() {
         
-        let initialImageController = ImageViewController(imageProvider: imageProvider, configuration: configuration, imageCount: imageCount, displacedView: displacedView, startIndex: startIndex,  imageIndex: startIndex, showDisplacedImage: true, fadeInHandler: fadeInHandler, delegate: self)
+        let initialImageController = self.imageControllerFactory.createImageViewController(startIndex)
         self.setViewControllers([initialImageController], direction: UIPageViewControllerNavigationDirection.Forward, animated: false, completion: nil)
         initialImageController.view.hidden = true
         
@@ -200,12 +205,20 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         
         closeButton?.addTarget(self, action: #selector(GalleryViewController.interactiveClose), forControlEvents: .TouchUpInside)
     }
-    
+
+    private func configureSeeAllButton() {
+
+        seeAllButton?.addTarget(self, action: #selector(GalleryViewController.seeAll), forControlEvents: .TouchUpInside)
+    }
+
     func createViewHierarchy() {
         
         if let close = closeButton {
-            
             self.view.addSubview(close)
+        }
+
+        if let seeAllButton = seeAllButton {
+            self.view.addSubview(seeAllButton)
         }
     }
     
@@ -228,6 +241,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         self.presentTransition.headerView = self.headerView
         self.presentTransition.footerView = self.footerView
         self.presentTransition.closeView = self.closeButton
+        self.presentTransition.seeAllView = self.seeAllButton
     }
     
     public override func viewDidLoad() {
@@ -236,6 +250,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         configureHeaderView()
         configureFooterView()
         configureCloseButton()
+        configureSeeAllButton()
         configurePresentTransition()
         createViewHierarchy()
     }
@@ -246,6 +261,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         super.viewDidLayoutSubviews()
         
         layoutCloseButton()
+        layoutSeeAll()
         layoutHeaderView()
         layoutFooterView()
     }
@@ -269,7 +285,23 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
             close.frame.origin.y = marginTop
         }
     }
-    
+
+    func layoutSeeAll() {
+
+        guard let seeAllButton = seeAllButton else { return }
+
+        switch seeAllLayout {
+        case .PinRight(let marginTop, let marginRight):
+            seeAllButton.autoresizingMask = [.FlexibleBottomMargin, .FlexibleLeftMargin]
+            seeAllButton.frame.origin.x = self.view.bounds.size.width - marginRight - seeAllButton.bounds.size.width
+            seeAllButton.frame.origin.y = marginTop
+        case .PinLeft(let marginTop, let marginLeft):
+            seeAllButton.autoresizingMask = [.FlexibleBottomMargin, .FlexibleRightMargin]
+            seeAllButton.frame.origin.x = marginLeft
+            seeAllButton.frame.origin.y = marginTop
+        }
+    }
+
     func layoutHeaderView() {
         
         guard let header = headerView else { return }
@@ -354,7 +386,44 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
         
         closeWithAnimation(closedCompletion)
      }
-    
+
+    func seeAll() {
+        let seeAllController = ThumbnailsViewController(imageProvider: self.imageProvider)
+        let closeButton = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
+        closeButton.setImage(UIImage(named: "close_normal"), forState: UIControlState.Normal)
+        closeButton.setImage(UIImage(named: "close_highlighted"), forState: UIControlState.Highlighted)
+        seeAllController.closeButton = closeButton
+        seeAllController.closeLayout = closeLayout
+        seeAllController.onItemSelected = { index in
+            self.goToIndex(index)
+        }
+        presentViewController(seeAllController, animated: true, completion: nil)
+    }
+
+    public func goToIndex(index: Int) {
+        guard currentIndex != index && index >= 0 && index < imageCount else { return }
+
+        let imageViewController = self.imageControllerFactory.createImageViewController(index)
+        let direction: UIPageViewControllerNavigationDirection = index > currentIndex ? .Forward : .Reverse
+
+        // workaround to make UIPageViewController happy
+        if direction == .Forward {
+            let previousVC = self.imageControllerFactory.createImageViewController(index - 1)
+            setViewControllers([previousVC], direction: direction, animated: true, completion: { finished in
+                dispatch_async(dispatch_get_main_queue(), { [weak self] in
+                    self?.setViewControllers([imageViewController], direction: direction, animated: false, completion: nil)
+                })
+            })
+        } else {
+            let nextVC = self.imageControllerFactory.createImageViewController(index + 1)
+            setViewControllers([nextVC], direction: direction, animated: true, completion: { finished in
+                dispatch_async(dispatch_get_main_queue(), { [weak self] in
+                    self?.setViewControllers([imageViewController], direction: direction, animated: false, completion: nil)
+                    })
+            })
+        }
+    }
+
     func closeWithAnimation(completion: (() -> Void)?) {
         
         UIView.animateWithDuration(0.1, animations: { [weak self] in
@@ -362,6 +431,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
             self?.headerView?.alpha = 0.0
             self?.footerView?.alpha = 0.0
             self?.closeButton?.alpha = 0.0
+            self?.seeAllButton?.alpha = 0.0
             
         }) { [weak self] done in
             
@@ -397,13 +467,14 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
     
     func imageViewController(controller: ImageViewController, didSwipeToDismissWithDistanceToEdge distance: CGFloat) {
         
-        self.view.backgroundColor = (distance == 0) ? UIColor.blackColor() : UIColor.clearColor()
+        self.view.backgroundColor = (distance == 0) ? backgroundColor : UIColor.clearColor()
         
         if isDecorationViewsHidden == false {
             
             let alpha = 1 - distance * swipeToDismissFadeOutAccelerationFactor
             
             closeButton?.alpha = alpha
+            seeAllButton?.alpha = alpha
             headerView?.alpha = alpha
             footerView?.alpha = alpha
         }
@@ -420,7 +491,7 @@ final public class GalleryViewController : UIPageViewController, UIViewControlle
             self?.headerView?.alpha = alpha
             self?.footerView?.alpha = alpha
             self?.closeButton?.alpha = alpha
-            
+            self?.seeAllButton?.alpha = alpha
             })
     }
     
