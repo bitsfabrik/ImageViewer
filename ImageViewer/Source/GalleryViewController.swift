@@ -11,8 +11,6 @@ import AVFoundation
 
 open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
 
-    public static var rotateManually: Bool = false
-    
     // UI
     fileprivate let overlayView = BlurView()
     /// A custom view on the top of the gallery with layout using default (or custom) pinning settings for header.
@@ -154,7 +152,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
 
         super.init(transitionStyle: UIPageViewController.TransitionStyle.scroll,
                    navigationOrientation: UIPageViewController.NavigationOrientation.horizontal,
-                   options: [UIPageViewController.OptionsKey.interPageSpacing: NSNumber(value: spineDividerWidth as Float)])
+                   options: [UIPageViewController.OptionsKey.interPageSpacing : NSNumber(value: spineDividerWidth as Float)])
 
         pagingDataSource.itemControllerDelegate = self
 
@@ -188,6 +186,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     @objc func didEndPlaying() {
         page(toIndex: currentIndex+1)
     }
+
 
     fileprivate func configureOverlayView() {
 
@@ -519,7 +518,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         /// of key Window will rotate all app's content with it via affine transform and from the perspective of the
         /// gallery it is just a simple relayout. Allowing access to remaining code only makes sense if the app is
         /// portrait only but we still want to support rotation inside the gallery.
-        guard UIApplication.isPortraitOnly || GalleryViewController.rotateManually else { return }
+        guard UIApplication.isPortraitOnly else { return }
 
         guard UIDevice.current.orientation.isFlat == false &&
             isAnimating == false else { return }
